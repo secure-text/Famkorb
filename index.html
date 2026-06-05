@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Famkorb</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:#2d6a4f;--green-mid:#40916c;--green-light:#52b788;--green-pale:#d8f3dc;
+  --amber:#e07b00;--amber-pale:#fff3cd;--red:#c0392b;
+  --bg:#f4f7f4;--card:#ffffff;--text:#1a1a1a;--muted:#6b7c6b;--border:#dde8dd;--radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+#auth-screen,#family-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;}
+#auth-screen{background:radial-gradient(ellipse at 30% 20%,#b7e4c7 0%,#f4f7f4 60%);}
+#family-screen{background:radial-gradient(ellipse at 70% 80%,#b7e4c7 0%,#f4f7f4 60%);display:none;}
+.auth-card,.family-card{background:var(--card);border-radius:28px;padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 8px 48px rgba(45,106,79,.13);}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:1.75rem;}
+.brand-icon{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--green-light),var(--green));display:flex;align-items:center;justify-content:center;font-size:1.6rem;}
+.brand-name{font-size:1.9rem;font-weight:800;color:var(--green);letter-spacing:-.02em;}
+.brand-tagline{font-size:.8rem;color:var(--muted);}
+.auth-tabs{display:flex;gap:4px;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:1.5rem;}
+.auth-tab{flex:1;padding:9px;border:none;border-radius:9px;background:transparent;font-family:'Nunito',sans-serif;font-size:.875rem;font-weight:700;cursor:pointer;color:var(--muted);transition:all .2s;}
+.auth-tab.active{background:var(--card);color:var(--green);box-shadow:0 1px 6px rgba(0,0,0,.1);}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:.75rem;font-weight:800;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;}
+.field input,.field select,.field textarea{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:12px;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:600;background:var(--bg);color:var(--text);transition:border-color .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--green-light);background:#fff;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 20px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green-mid);transform:translateY(-1px);}
+.btn-secondary{background:var(--bg);color:var(--text);border:2px solid var(--border);}
+.btn-secondary:hover{border-color:var(--green-light);}
+.btn-danger{background:#fff0f0;color:var(--red);border:2px solid #ffc9c9;}
+.btn-sm{padding:6px 12px;font-size:.8rem;border-radius:9px;}
+.btn-full{width:100%;}
+.family-subtitle{font-size:.9rem;color:var(--muted);font-weight:600;margin-bottom:1.75rem;line-height:1.5;}
+.family-or{display:flex;align-items:center;gap:12px;margin:1.25rem 0;color:var(--muted);font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;}
+.family-or::before,.family-or::after{content:'';flex:1;height:1px;background:var(--border);}
+#app{display:none;}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:.875rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.topbar-brand{display:flex;align-items:center;gap:8px;}
+.topbar-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--green-light),var(--green));display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.topbar-title{font-size:1.1rem;font-weight:800;color:var(--green);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0;}
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);}
+.tab{flex:1;padding:11px 8px;border:none;border-bottom:3px solid transparent;background:transparent;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--muted);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tab svg{width:20px;height:20px;}
+.tab.active{color:var(--green);border-bottom-color:var(--green);}
+.content{padding:1rem;max-width:640px;margin:0 auto;}
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:.75rem;overflow:hidden;}
+.card-pad{padding:1rem 1.25rem;}
+.market-tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:800;letter-spacing:.02em;}
+.tag-rewe{background:#fde8e8;color:#c0392b;}.tag-edeka{background:#fff4e0;color:#a85c00;}
+.tag-lidl{background:#e8effe;color:#1e4aad;}.tag-aldi{background:#e8f7ee;color:#1a6b3a;}
+.tag-netto{background:#f0ecfe;color:#5731c9;}.tag-penny{background:#fff0e8;color:#b84500;}
+.item-row{display:flex;align-items:flex-start;gap:12px;padding:.875rem 1.25rem;border-bottom:1px solid var(--border);}
+.item-row:last-child{border-bottom:none;}
+.item-check{width:24px;height:24px;border-radius:7px;border:2.5px solid var(--border);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.item-check.done{background:var(--green);border-color:var(--green);}
+.item-check.done::after{content:'✓';color:#fff;font-size:.75rem;font-weight:800;}
+.item-name{font-weight:700;font-size:.95rem;}
+.item-row.is-done .item-name{text-decoration:line-through;color:var(--muted);font-weight:400;}
+.item-meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:3px;}
+.item-qty{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted);background:var(--bg);padding:1px 7px;border-radius:5px;}
+.item-by{font-size:.75rem;color:var(--muted);}
+.item-desc{font-size:.82rem;color:var(--muted);margin-top:3px;}
+.bike-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:1.1rem 1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:14px;}
+.bike-icon{font-size:2.2rem;line-height:1;}
+.bike-name{font-weight:800;font-size:.95rem;margin-bottom:3px;}
+.bike-status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:20px;font-size:.78rem;font-weight:700;}
+.pill-free{background:var(--green-pale);color:var(--green);}
+.pill-inuse{background:var(--amber-pale);color:var(--amber);}
+.member-row{display:flex;align-items:center;gap:12px;padding:.875rem 1.25rem;border-bottom:1px solid var(--border);}
+.member-row:last-child{border-bottom:none;}
+.member-name{font-weight:700;}
+.member-role{font-size:.8rem;color:var(--muted);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:100;padding:1rem;}
+.modal-overlay.hidden{display:none;}
+@media(min-width:500px){.modal-overlay{align-items:center;}}
+.modal{background:var(--card);border-radius:24px 24px 0 0;padding:1.5rem;width:100%;max-width:480px;animation:slideUp .22s ease;}
+@media(min-width:500px){.modal{border-radius:24px;}}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-title{font-size:1.15rem;font-weight:800;margin-bottom:1.25rem;color:var(--green);}
+.modal-actions{display:flex;gap:8px;margin-top:1rem;}
+.modal-actions .btn{flex:1;}
+.fab{position:fixed;bottom:1.5rem;right:1.5rem;width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,var(--green-light),var(--green));color:#fff;border:none;font-size:1.6rem;cursor:pointer;box-shadow:0 6px 24px rgba(45,106,79,.4);display:flex;align-items:center;justify-content:center;z-index:50;transition:transform .15s;}
+.fab:hover{transform:scale(1.08) rotate(90deg);}
+.filter-bar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center;}
+.filter-bar select{flex:1;min-width:130px;padding:8px 10px;border:2px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.85rem;background:var(--card);}
+.filter-bar label{font-size:.85rem;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer;}
+.error-msg{color:var(--red);font-size:.85rem;margin-top:.5rem;min-height:1.2em;font-weight:700;}
+.section-label{font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:1.25rem 0 .5rem;}
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--muted);}
+.empty-state .emoji{font-size:2.5rem;margin-bottom:.5rem;}
+.empty-state p{font-weight:700;}
+.done-divider{padding:.5rem 1.25rem;font-size:.72rem;font-weight:800;color:var(--muted);background:var(--bg);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);}
+.code-box{background:var(--green-pale);border:2px solid #95d5b2;border-radius:16px;padding:1.25rem;text-align:center;margin-bottom:.75rem;}
+.code-label{font-size:.72rem;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem;}
+.code-value{font-family:'DM Mono',monospace;font-size:2.4rem;font-weight:500;letter-spacing:.3em;color:var(--green);}
+.code-hint{font-size:.78rem;color:var(--muted);margin-top:.4rem;font-weight:600;line-height:1.5;}
+/* Bike list item with delete */
+.bike-card-row{display:flex;align-items:center;gap:14px;}
+.bike-card-row .bike-info{flex:1;}
+.bike-delete-btn{background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);padding:4px 8px;border-radius:8px;transition:all .15s;}
+.bike-delete-btn:hover{background:#fff0f0;color:var(--red);}
+/* Config warning box */
+.config-warning{background:#fff3cd;border:2px solid #ffc107;border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;font-size:.9rem;font-weight:600;line-height:1.6;}
+.config-warning strong{color:#856404;}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-icon">🧺</div>
+      <div><div class="brand-name">Famkorb</div><div class="brand-tagline">Die Einkaufsliste für deine Familie</div></div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Anmelden</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Registrieren</button>
+    </div>
+    <div id="tab-login">
+      <div class="field"><label>E-Mail</label><input type="email" id="login-email" placeholder="mama@familie.de"></div>
+      <div class="field"><label>Passwort</label><input type="password" id="login-pw" placeholder="••••••••"></div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Anmelden</button>
+      <div class="error-msg" id="login-err"></div>
+    </div>
+    <div id="tab-register" style="display:none">
+      <div class="field"><label>Dein Name</label><input type="text" id="reg-name" placeholder="z.B. Mama, Jonas…"></div>
+      <div class="field"><label>Rolle</label>
+        <select id="reg-role"><option>Elternteil</option><option>Kind</option><option>Geschwister</option><option>Oma / Opa</option></select>
+      </div>
+      <div class="field"><label>E-Mail</label><input type="email" id="reg-email" placeholder="name@familie.de"></div>
+      <div class="field"><label>Passwort</label><input type="password" id="reg-pw" placeholder="min. 6 Zeichen"></div>
+      <button class="btn btn-primary btn-full" onclick="doRegister()">Konto erstellen</button>
+      <div class="error-msg" id="reg-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FAMILY JOIN / CREATE SCREEN -->
+<div id="family-screen">
+  <div class="family-card">
+    <div class="brand">
+      <div class="brand-icon">🏠</div>
+      <div><div class="brand-name">Familie</div><div class="brand-tagline">Wähle deine Familie</div></div>
+    </div>
+    <p class="family-subtitle" id="family-greeting">Erstelle eine neue Familie oder tritt einer bestehenden bei.</p>
+    <div class="field"><label>Familienname</label><input type="text" id="new-family-name" placeholder="z.B. Familie Müller"></div>
+    <button class="btn btn-primary btn-full" onclick="createFamily()">✨ Neue Familie erstellen</button>
+    <div class="error-msg" id="family-err"></div>
+    <div class="family-or">oder</div>
+    <div class="field">
+      <label>Familien-Code eingeben</label>
+      <input type="text" id="join-code" placeholder="A3F7K2" maxlength="6"
+        style="text-transform:uppercase;letter-spacing:.25em;font-family:'DM Mono',monospace;font-size:1.3rem;text-align:center">
+    </div>
+    <button class="btn btn-secondary btn-full" onclick="joinFamily()">🔑 Familie beitreten</button>
+    <div class="error-msg" id="join-err"></div>
+    <div style="margin-top:1.5rem;text-align:center">
+      <button style="background:none;border:none;color:var(--muted);font-family:'Nunito',sans-serif;font-size:.85rem;cursor:pointer" onclick="doLogout()">Abmelden</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-icon">🧺</div>
+      <div class="topbar-title" id="top-family-name">Famkorb</div>
+    </div>
+    <div class="topbar-right">
+      <div class="avatar" id="top-avatar"></div>
+      <div style="line-height:1.2">
+        <div style="font-weight:800;font-size:.9rem" id="top-name"></div>
+        <div style="font-size:.72rem;color:var(--muted)" id="top-role"></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="doLogout()">Abmelden</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" id="nav-list" onclick="switchTab('list')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></svg>
+      Einkauf
+    </button>
+    <button class="tab" id="nav-bikes" onclick="switchTab('bikes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5L9 3"/><path d="M9 3h6l3 9-8.5 2.5"/></svg>
+      Fahrräder
+    </button>
+    <button class="tab" id="nav-family" onclick="switchTab('family')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Familie
+    </button>
+  </div>
+
+  <div id="tab-list" class="content">
+    <div class="filter-bar">
+      <select id="filter-market" onchange="renderItems()">
+        <option value="">Alle Märkte</option>
+        <option value="rewe">REWE</option><option value="edeka">EDEKA</option>
+        <option value="lidl">Lidl</option><option value="aldi">Aldi</option>
+        <option value="netto">Netto</option><option value="penny">Penny</option>
+      </select>
+      <label><input type="checkbox" id="hide-done" onchange="renderItems()"> Erledigte ausblenden</label>
+    </div>
+    <div class="card"><div id="items-container"><div class="empty-state"><div class="emoji">🛍️</div><p>Noch nichts im Korb</p></div></div></div>
+  </div>
+
+  <!-- BIKES TAB -->
+  <div id="tab-bikes" class="content" style="display:none">
+    <div id="bikes-container"></div>
+
+    <!-- Fahrrad nehmen / zurückbringen -->
+    <div class="card card-pad" style="margin-bottom:.75rem">
+      <div style="font-weight:800;margin-bottom:1rem;color:var(--green)">🚲 Fahrrad nehmen / zurückbringen</div>
+      <div class="field"><label>Fahrrad wählen</label>
+        <select id="bike-pick">
+          <option value="">– Bitte wählen –</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" style="flex:1" onclick="takeBike()">Ich nehme es</button>
+        <button class="btn btn-secondary" style="flex:1" onclick="returnBike()">Zurückgebracht</button>
+      </div>
+    </div>
+
+    <!-- Fahrrad hinzufügen -->
+    <div class="card card-pad">
+      <div style="font-weight:800;margin-bottom:1rem;color:var(--green)">➕ Eigenes Fahrrad hinzufügen</div>
+      <div style="display:grid;grid-template-columns:3rem 1fr;gap:8px;align-items:end">
+        <div class="field" style="margin-bottom:0">
+          <label>Emoji</label>
+          <input type="text" id="new-bike-icon" placeholder="🚲" maxlength="4"
+            style="text-align:center;font-size:1.5rem;padding:8px 4px">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Name des Fahrrads</label>
+          <input type="text" id="new-bike-name" placeholder="z.B. Mountainbike, E-Bike, Kinderad…">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:.75rem" onclick="addBike()">Fahrrad hinzufügen</button>
+      <div class="error-msg" id="bike-err"></div>
+    </div>
+  </div>
+
+  <div id="tab-family" class="content" style="display:none">
+    <div class="section-label">Euer Familien-Code</div>
+    <div class="code-box">
+      <div class="code-label">Code zum Teilen</div>
+      <div class="code-value" id="display-family-code">——</div>
+      <div class="code-hint">Diesen Code per WhatsApp schicken → App öffnen → Registrieren → Code eingeben → fertig!</div>
+    </div>
+    <button class="btn btn-secondary btn-full" id="copy-btn" onclick="copyCode()" style="margin-bottom:1.25rem">📋 Code kopieren</button>
+    <div class="section-label">Familienmitglieder</div>
+    <div class="card" style="padding:0"><div id="family-container"><div class="empty-state"><p>Lädt…</p></div></div></div>
+    <div style="background:#fff0f0;border:1px solid #ffc9c9;border-radius:var(--radius);padding:1.1rem 1.25rem;margin-top:.75rem">
+      <div style="font-weight:800;color:var(--red);margin-bottom:.4rem">Familie verlassen</div>
+      <div style="font-size:.85rem;color:#7a3030;line-height:1.6;font-weight:600;margin-bottom:.75rem">Du kannst die Familie verlassen und danach einer neuen beitreten.</div>
+      <button class="btn btn-danger btn-sm" onclick="leaveFamily()">Familie verlassen</button>
+    </div>
+  </div>
+
+  <button class="fab" id="fab-add" onclick="openAddModal()">+</button>
+</div>
+
+<!-- ADD ITEM MODAL -->
+<div class="modal-overlay hidden" id="modal-add" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">🧺 Artikel hinzufügen</div>
+    <div class="field"><label>Artikel *</label><input type="text" id="item-name" placeholder="z.B. Haferflocken"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label>Menge</label><input type="text" id="item-qty" placeholder="z.B. 500g"></div>
+      <div class="field"><label>Supermarkt</label>
+        <select id="item-market">
+          <option value="">Egal</option>
+          <option value="rewe">REWE</option><option value="edeka">EDEKA</option>
+          <option value="lidl">Lidl</option><option value="aldi">Aldi</option>
+          <option value="netto">Netto</option><option value="penny">Penny</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Hinweis</label><textarea id="item-desc" rows="2" placeholder="z.B. Bio, Marke XY, im Kühlregal…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="addItem()">In den Korb</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, addDoc, doc, setDoc, getDoc, getDocs, onSnapshot, updateDoc, deleteDoc, serverTimestamp, query, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 🔑 FIREBASE KONFIGURATION
+// Trage hier deine eigenen Firebase-Werte ein.
+// Diese findest du in der Firebase Console unter:
+// Projekteinstellungen → Allgemein → Deine Apps → Konfiguration
+// ─────────────────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyDQrp9sYjV3WlZa40CenNNIb9oDifQIdoo",
+  authDomain:        "familienliste-658cb.firebaseapp.com",
+  projectId:         "familienliste-658cb",
+  storageBucket:     "familienliste-658cb.firebasestorage.app",
+  messagingSenderId: "184466645989",
+  appId:             "1:184466645989:web:3defb556e73ce9b2b6050c"
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser=null, currentProfile=null, currentFamilyId=null, currentFamilyCode=null;
+let unsubItems=null, unsubBikes=null, unsubFamily=null;
+let allItems=[], bikeStatus={}, familyBikes=[];
+
+const COLORS=['#2d6a4f','#1e4aad','#c0392b','#7c3aed','#b84500','#0e7490','#92400e'];
+const initials=n=>n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const colorFor=uid=>{let h=0;for(let i=0;i<uid.length;i++)h=uid.charCodeAt(i)+((h<<5)-h);return COLORS[Math.abs(h)%COLORS.length];};
+const errMap={'auth/email-already-in-use':'Diese E-Mail ist bereits registriert.','auth/invalid-email':'Ungültige E-Mail.','auth/weak-password':'Passwort zu schwach (min. 6 Zeichen).','auth/user-not-found':'Kein Konto mit dieser E-Mail.','auth/wrong-password':'Falsches Passwort.','auth/invalid-credential':'E-Mail oder Passwort falsch.'};
+
+function generateCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+// AUTH
+window.switchAuthTab=t=>{
+  document.getElementById('tab-login').style.display=t==='login'?'':'none';
+  document.getElementById('tab-register').style.display=t==='register'?'':'none';
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>el.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
+};
+
+window.doRegister=async()=>{
+  const name=document.getElementById('reg-name').value.trim(),role=document.getElementById('reg-role').value,
+        email=document.getElementById('reg-email').value.trim(),pw=document.getElementById('reg-pw').value,err=document.getElementById('reg-err');
+  err.textContent='';
+  if(!name){err.textContent='Bitte Namen eingeben.';return;}
+  try{
+    const c=await createUserWithEmailAndPassword(auth,email,pw);
+    await setDoc(doc(db,'users',c.user.uid),{name,role,email,familyId:null,createdAt:serverTimestamp()});
+  }catch(e){err.textContent=errMap[e.code]||e.message;}
+};
+
+window.doLogin=async()=>{
+  const email=document.getElementById('login-email').value.trim(),pw=document.getElementById('login-pw').value,err=document.getElementById('login-err');
+  err.textContent='';
+  try{await signInWithEmailAndPassword(auth,email,pw);}
+  catch(e){err.textContent=errMap[e.code]||e.message;}
+};
+
+window.doLogout=async()=>{
+  [unsubItems,unsubBikes,unsubFamily].forEach(u=>u&&u());
+  unsubItems=unsubBikes=unsubFamily=null;
+  currentFamilyId=null;currentFamilyCode=null;
+  await signOut(auth);
+};
+
+// FAMILY
+window.createFamily=async()=>{
+  const nameInput=document.getElementById('new-family-name').value.trim();
+  const err=document.getElementById('family-err');
+  err.textContent='';
+  if(!nameInput){err.textContent='Bitte einen Familiennamen eingeben.';return;}
+  let code,exists=true;
+  while(exists){
+    code=generateCode();
+    const snap=await getDocs(query(collection(db,'families'),where('code','==',code)));
+    exists=!snap.empty;
+  }
+  const famRef=doc(collection(db,'families'));
+  await setDoc(famRef,{name:nameInput,code,createdBy:currentUser.uid,createdAt:serverTimestamp()});
+  await updateDoc(doc(db,'users',currentUser.uid),{familyId:famRef.id});
+  currentProfile.familyId=famRef.id;
+  currentFamilyId=famRef.id;
+  currentFamilyCode=code;
+  document.getElementById('top-family-name').textContent=nameInput;
+  enterApp();
+};
+
+window.joinFamily=async()=>{
+  const code=document.getElementById('join-code').value.trim().toUpperCase();
+  const err=document.getElementById('join-err');
+  err.textContent='';
+  if(code.length!==6){err.textContent='Bitte einen 6-stelligen Code eingeben.';return;}
+  const snap=await getDocs(query(collection(db,'families'),where('code','==',code)));
+  if(snap.empty){err.textContent='Keine Familie mit diesem Code gefunden.';return;}
+  const famDoc=snap.docs[0];
+  await updateDoc(doc(db,'users',currentUser.uid),{familyId:famDoc.id});
+  currentProfile.familyId=famDoc.id;
+  currentFamilyId=famDoc.id;
+  currentFamilyCode=famDoc.data().code;
+  document.getElementById('top-family-name').textContent=famDoc.data().name||'Famkorb';
+  enterApp();
+};
+
+window.leaveFamily=async()=>{
+  if(!confirm('Wirklich die Familie verlassen?'))return;
+  [unsubItems,unsubBikes,unsubFamily].forEach(u=>u&&u());
+  unsubItems=unsubBikes=unsubFamily=null;
+  await updateDoc(doc(db,'users',currentUser.uid),{familyId:null});
+  currentProfile.familyId=null;currentFamilyId=null;currentFamilyCode=null;
+  showFamilyScreen();
+};
+
+window.copyCode=()=>{
+  if(!currentFamilyCode)return;
+  navigator.clipboard.writeText(currentFamilyCode).then(()=>{
+    const btn=document.getElementById('copy-btn');
+    btn.textContent='✅ Kopiert!';
+    setTimeout(()=>btn.textContent='📋 Code kopieren',2000);
+  });
+};
+
+// AUTH STATE
+onAuthStateChanged(auth,async user=>{
+  if(user){
+    currentUser=user;
+    const snap=await getDoc(doc(db,'users',user.uid));
+    currentProfile=snap.exists()?snap.data():{name:user.email,role:'',familyId:null};
+    if(!currentProfile.familyId){
+      showFamilyScreen();
+    }else{
+      const famSnap=await getDoc(doc(db,'families',currentProfile.familyId));
+      if(famSnap.exists()){
+        currentFamilyId=currentProfile.familyId;
+        currentFamilyCode=famSnap.data().code;
+        document.getElementById('top-family-name').textContent=famSnap.data().name||'Famkorb';
+        enterApp();
+      }else{
+        await updateDoc(doc(db,'users',user.uid),{familyId:null});
+        currentProfile.familyId=null;
+        showFamilyScreen();
+      }
+    }
+  }else{
+    currentUser=null;currentProfile=null;
+    document.getElementById('auth-screen').style.display='flex';
+    document.getElementById('family-screen').style.display='none';
+    document.getElementById('app').style.display='none';
+  }
+});
+
+function showFamilyScreen(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('family-screen').style.display='flex';
+  document.getElementById('family-greeting').textContent=
+    `Hallo ${currentProfile.name}! Erstelle eine neue Familie oder tritt mit einem Code bei.`;
+  document.getElementById('family-err').textContent='';
+  document.getElementById('join-err').textContent='';
+  document.getElementById('join-code').value='';
+  document.getElementById('new-family-name').value='';
+}
+
+function enterApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('family-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  const color=colorFor(currentUser.uid),av=document.getElementById('top-avatar');
+  av.textContent=initials(currentProfile.name);
+  av.style.background=color+'22';av.style.color=color;
+  document.getElementById('top-name').textContent=currentProfile.name;
+  document.getElementById('top-role').textContent=currentProfile.role;
+  document.getElementById('display-family-code').textContent=currentFamilyCode||'——';
+  subItems();subBikes();subFamily();
+  switchTab('list');
+}
+
+window.switchTab=t=>{
+  ['list','bikes','family'].forEach(id=>{
+    document.getElementById('tab-'+id).style.display=id===t?'':'none';
+    document.getElementById('nav-'+id).classList.toggle('active',id===t);
+  });
+  document.getElementById('fab-add').style.display=t==='list'?'':'none';
+};
+
+// ITEMS
+function subItems(){
+  if(unsubItems)unsubItems();
+  unsubItems=onSnapshot(collection(db,'families',currentFamilyId,'items'),snap=>{
+    allItems=[];
+    snap.forEach(d=>allItems.push({id:d.id,...d.data()}));
+    allItems.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    renderItems();
+  });
+}
+
+window.renderItems=()=>{
+  const filter=document.getElementById('filter-market').value;
+  const hideDone=document.getElementById('hide-done').checked;
+  let items=allItems;
+  if(filter)items=items.filter(i=>i.market===filter);
+  if(hideDone)items=items.filter(i=>!i.done);
+  const el=document.getElementById('items-container');
+  if(!items.length){el.innerHTML=`<div class="empty-state"><div class="emoji">${hideDone&&allItems.some(i=>i.done)?'🎉':'🛍️'}</div><p>${hideDone&&allItems.some(i=>i.done)?'Alles erledigt!':'Noch nichts im Korb'}</p></div>`;return;}
+  const todo=items.filter(i=>!i.done),done=items.filter(i=>i.done);
+  let html=todo.map(itemHTML).join('');
+  if(done.length&&!hideDone)html+=`<div class="done-divider">Erledigt</div>`+done.map(itemHTML).join('');
+  el.innerHTML=html;
+};
+
+function itemHTML(item){
+  const market=item.market?`<span class="market-tag tag-${item.market}">${item.market.toUpperCase()}</span>`:'';
+  const qty=item.qty?`<span class="item-qty">${item.qty}</span>`:'';
+  const doneBy=item.done&&item.doneBy?` · Gekauft von ${item.doneBy}`:'';
+  const desc=item.desc?`<div class="item-desc">${item.desc}</div>`:'';
+  return `<div class="item-row${item.done?' is-done':''}">
+    <div class="item-check${item.done?' done':''}" onclick="toggleItem('${item.id}',${item.done})"></div>
+    <div style="flex:1"><div class="item-name">${item.name}</div>
+    <div class="item-meta">${qty}${market}<span class="item-by">von ${item.addedBy}${doneBy}</span></div>${desc}</div>
+    <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')">✕</button>
+  </div>`;
+}
+
+window.openAddModal=()=>{
+  ['item-name','item-qty','item-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('item-market').value='';
+  document.getElementById('modal-add').classList.remove('hidden');
+};
+window.closeModal=()=>document.getElementById('modal-add').classList.add('hidden');
+
+window.addItem=async()=>{
+  const name=document.getElementById('item-name').value.trim();
+  if(!name)return;
+  await addDoc(collection(db,'families',currentFamilyId,'items'),{
+    name,qty:document.getElementById('item-qty').value.trim(),
+    market:document.getElementById('item-market').value,
+    desc:document.getElementById('item-desc').value.trim(),
+    done:false,addedBy:currentProfile.name,addedByUid:currentUser.uid,createdAt:serverTimestamp()
+  });
+  closeModal();
+};
+
+window.toggleItem=async(id,wasDone)=>{
+  const data={done:!wasDone};
+  if(!wasDone){data.doneBy=currentProfile.name;data.doneAt=serverTimestamp();}
+  else data.doneBy=null;
+  await updateDoc(doc(db,'families',currentFamilyId,'items',id),data);
+};
+
+window.deleteItem=async id=>await deleteDoc(doc(db,'families',currentFamilyId,'items',id));
+
+// ─── BIKES (dynamisch, in Firestore gespeichert) ─────────────────────────────
+//
+// Datenstruktur:
+//   families/{id}/shared/bikes       → { status: { bikeId: {name, uid, since} } }
+//   families/{id}/shared/bikeList    → { bikes: [{id, label, icon}, ...] }
+//
+function subBikes(){
+  if(unsubBikes)unsubBikes();
+
+  // Wir hören auf BEIDE Dokumente gleichzeitig mit einem gemeinsamen Listener
+  const bikeListRef = doc(db,'families',currentFamilyId,'shared','bikeList');
+  const bikeStatusRef = doc(db,'families',currentFamilyId,'shared','bikes');
+
+  let latestList = null;
+  let latestStatus = null;
+
+  const unsubList = onSnapshot(bikeListRef, snap => {
+    latestList = snap.exists() ? (snap.data().bikes || []) : [];
+    familyBikes = latestList;
+    if(latestStatus !== null) renderBikes();
+    updateBikePicker();
+  });
+
+  const unsubStatus = onSnapshot(bikeStatusRef, snap => {
+    latestStatus = snap.exists() ? (snap.data().status || {}) : {};
+    bikeStatus = latestStatus;
+    if(latestList !== null) renderBikes();
+    // Re-render family tab if visible
+    if(document.getElementById('tab-family').style.display !== 'none') {
+      // family subscription handles its own render
+    }
+  });
+
+  // Return combined unsubscribe
+  unsubBikes = () => { unsubList(); unsubStatus(); };
+}
+
+function updateBikePicker(){
+  const sel = document.getElementById('bike-pick');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">– Bitte wählen –</option>';
+  familyBikes.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b.id;
+    opt.textContent = `${b.icon} ${b.label}`;
+    sel.appendChild(opt);
+  });
+  if(current) sel.value = current;
+}
+
+window.renderBikes=()=>{
+  const el = document.getElementById('bikes-container');
+  if(!familyBikes.length){
+    el.innerHTML=`<div class="empty-state"><div class="emoji">🚲</div><p>Noch keine Fahrräder – füge unten welche hinzu!</p></div>`;
+    return;
+  }
+  el.innerHTML = familyBikes.map(bike => {
+    const s = bikeStatus[bike.id];
+    const pill = s
+      ? `<span class="bike-status-pill pill-inuse">🚴 ${s.name} · seit ${s.since}</span>`
+      : `<span class="bike-status-pill pill-free">✓ Verfügbar</span>`;
+    return `<div class="bike-card">
+      <div class="bike-card-row" style="flex:1">
+        <div class="bike-icon">${bike.icon}</div>
+        <div class="bike-info">
+          <div class="bike-name">${bike.label}</div>
+          ${pill}
+        </div>
+        <button class="bike-delete-btn" onclick="deleteBike('${bike.id}')" title="Fahrrad löschen">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+window.addBike = async () => {
+  const err = document.getElementById('bike-err');
+  err.textContent = '';
+  const icon = document.getElementById('new-bike-icon').value.trim() || '🚲';
+  const label = document.getElementById('new-bike-name').value.trim();
+  if(!label){ err.textContent = 'Bitte einen Namen eingeben.'; return; }
+  const newBike = { id: 'bike_' + Date.now(), label, icon };
+  const updated = [...familyBikes, newBike];
+  await setDoc(doc(db,'families',currentFamilyId,'shared','bikeList'), { bikes: updated });
+  document.getElementById('new-bike-name').value = '';
+  document.getElementById('new-bike-icon').value = '';
+};
+
+window.deleteBike = async (bikeId) => {
+  if(!confirm('Fahrrad wirklich löschen?')) return;
+  const updated = familyBikes.filter(b => b.id !== bikeId);
+  await setDoc(doc(db,'families',currentFamilyId,'shared','bikeList'), { bikes: updated });
+  // Auch Status entfernen falls vorhanden
+  if(bikeStatus[bikeId]){
+    const updatedStatus = {...bikeStatus};
+    delete updatedStatus[bikeId];
+    await setDoc(doc(db,'families',currentFamilyId,'shared','bikes'), { status: updatedStatus });
+  }
+};
+
+window.takeBike = async () => {
+  const bikeId = document.getElementById('bike-pick').value;
+  if(!bikeId){ alert('Bitte ein Fahrrad auswählen.'); return; }
+  const now = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  const updated = {...bikeStatus};
+  // Vorheriges Fahrrad des Nutzers freigeben
+  Object.keys(updated).forEach(k => { if(updated[k]?.uid === currentUser.uid) delete updated[k]; });
+  updated[bikeId] = { name: currentProfile.name, uid: currentUser.uid, since: now };
+  await setDoc(doc(db,'families',currentFamilyId,'shared','bikes'), { status: updated });
+};
+
+window.returnBike = async () => {
+  const bikeId = document.getElementById('bike-pick').value;
+  const updated = {...bikeStatus};
+  if(bikeId && updated[bikeId]?.uid === currentUser.uid){
+    delete updated[bikeId];
+  } else {
+    // Alle Fahrräder des Nutzers zurückgeben
+    Object.keys(updated).forEach(k => { if(updated[k]?.uid === currentUser.uid) delete updated[k]; });
+  }
+  await setDoc(doc(db,'families',currentFamilyId,'shared','bikes'), { status: updated });
+};
+
+// FAMILY MEMBERS
+function subFamily(){
+  if(unsubFamily)unsubFamily();
+  unsubFamily=onSnapshot(query(collection(db,'users'),where('familyId','==',currentFamilyId)),snap=>{
+    const members=[];
+    snap.forEach(d=>members.push({id:d.id,...d.data()}));
+    const el=document.getElementById('family-container');
+    if(!members.length){el.innerHTML='<div class="empty-state"><p>Noch keine Mitglieder</p></div>';return;}
+    el.innerHTML=members.map(m=>{
+      const color=colorFor(m.id);
+      // Finde Fahrrad des Mitglieds dynamisch aus familyBikes
+      const bikeEntry=Object.entries(bikeStatus).find(([k,v])=>v?.uid===m.id);
+      const bikeDef=bikeEntry?familyBikes.find(b=>b.id===bikeEntry[0]):null;
+      const bikeInfo=bikeDef?`<div style="margin-top:4px"><span class="bike-status-pill pill-inuse">${bikeDef.icon} Unterwegs mit ${bikeDef.label}</span></div>`:'';
+      const isMe=m.id===currentUser.uid?` <span style="font-size:.75rem;color:var(--muted)">(du)</span>`:'';
+      return `<div class="member-row">
+        <div style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;background:${color}22;color:${color};flex-shrink:0">${initials(m.name)}</div>
+        <div><div class="member-name">${m.name}${isMe}</div><div class="member-role">${m.role}</div>${bikeInfo}</div>
+      </div>`;
+    }).join('');
+  });
+}
+</script>
+</body>
+</html>
